@@ -1,0 +1,119 @@
+PS C:\progStuff\SEM-3_assignments\sem_4_assignments\final_proj\code_assistant> py code_assistant.py
+Code Assistant ready.
+Commands:
+ - explain <function_name>
+ - refactor <function_name>
+ - tests <file_name>
+ - pypy <package_name>
+ - Or ask a general question about the codebase.
+ - Type 'exit' or 'quit' to leave.
+
+>> explain greet
+
+The function `greet` takes one argument, `name`, and returns a string formatted as "Hello, [name]!".
+
+>> explain factorial
+
+The `factorial` function calculates the factorial of a given non-negative integer `n`. It is implemented recursively: it returns 1 if `n` is 0 (the base case), otherwise it returns `n` multiplied by the factorial of `n-1`.
+
+>> refactor factorial
+
+The provided `factorial` function is a classic recursive implementation. While mathematically elegant and clear for those familiar with recursion, it has two main limitations:
+
+1.  **Recursion Depth Limit:** For large `n`, it will hit Python's default recursion limit (typically around 1000-3000), raising a `RecursionError`. This means it *will* change its behavior from "returning a number" to "raising an error" for large enough inputs.
+2.  **Performance:** Each recursive call adds overhead to the call stack. An iterative solution generally performs better for large inputs by avoiding this overhead.
+3.  **Error Handling (Implicit):** For negative `n`, the original function will recurse infinitely until it hits the recursion limit. A robust function should handle invalid inputs explicitly.
+
+Here's a refactored version that addresses these points, primarily by converting it to an iterative approach, while maintaining its core behavior for valid inputs and improving robustness for invalid ones.
+
+```python
+import math
+
+def factorial(n: int) -> int:
+    """
+    Calculates the factorial of a non-negative integer n.
+
+    The factorial of a non-negative integer n, denoted by n!, is the product
+    of all positive integers less than or equal to n. The factorial of 0 is 1.
+
+    Args:
+        n: A non-negative integer.
+
+    Returns:
+        The factorial of n.
+
+    Raises:
+        ValueError: If n is a negative integer.
+        TypeError: If n is not an integer.
+    """
+    if not isinstance(n, int):
+        raise TypeError("factorial() only accepts integer arguments.")
+    if n < 0:
+        raise ValueError("factorial() not defined for negative numbers.")
+    if n == 0:
+        return 1
+
+    # Iterative calculation
+    result = 1
+    for i in range(1, n + 1):
+        result *= i
+    return result
+
+```
+
+### Explanation of Improvements:
+
+1.  **Clarity & Structure:**
+    *   **Iterative Approach:** The `for` loop explicitly shows the accumulation of the product from 1 up to `n`. This can be easier to follow for some compared to the recursive call stack.
+    *   **Docstrings:** A clear, concise docstring explains what the function does, its arguments, return value, and potential exceptions. This is crucial for maintainability and readability.
+    *   **Type Hints:** `n: int` and `-> int` improve code readability and allow for static analysis (e.g., using MyPy) to catch potential type-related errors early.
+
+2.  **Performance:**
+    *   **No Recursion Overhead:** By using an iterative loop, we avoid the overhead of function calls and maintaining a call stack for each step, leading to better performance for larger `n`.
+    *   **Avoids RecursionLimitError:** This function will not hit Python's recursion depth limit, allowing it to compute factorials for much larger numbers than the recursive version (until integer overflow, which Python handles with arbitrary precision integers).
+
+3.  **Robustness (Implicit Behavior Improvement):**
+    *   **Explicit Error Handling:**
+        *   `if not isinstance(n, int): raise TypeError(...)` handles cases where `n` is not an integer (e.g., `factorial(3.5)` or `factorial("abc")`). The original would have failed with a `TypeError` later during the arithmetic operation or a `RecursionError` for non-integer negative numbers.
+        *   `if n < 0: raise ValueError(...)` explicitly handles negative input. The original would have resulted in an infinite recursion (leading to a `RecursionError`). This change makes the error more specific and immediate, which is generally a desired behavior for invalid inputs.
+
+### Why this change does *not* alter the *core* behavior:
+
+*   For any valid non-negative integer `n`, the function will return the exact same factorial value as the original recursive version.
+*   The errors raised for invalid inputs are more specific and immediate, which is an improvement in "clarity" and "structure" of error handling, rather than a fundamental change to the mathematical output.
+
+---
+
+### Pythonic Alternative (for context, not a direct refactoring of the provided code):
+
+It's also worth noting that for calculating factorials in production Python code, the best approach is often to use the built-in `math.factorial` function, which is implemented in C and is highly optimized.
+
+```python
+import math
+
+def factorial_pythonic(n: int) -> int:
+    """
+    Calculates the factorial of a non-negative integer n using math.factorial.
+
+    Args:
+        n: A non-negative integer.
+
+    Returns:
+        The factorial of n.
+
+    Raises:
+        ValueError: If n is a negative integer.
+        TypeError: If n is not an integer.
+    """
+    return math.factorial(n)
+
+```
+This `math.factorial` version handles `TypeError` and `ValueError` for negative inputs directly (and efficiently), making it the most robust and performant option. While `factorial_pythonic` is not a refactoring of the *original code's logic*, it's what an expert would recommend for the task.
+
+>> pypi requests
+
+requests (v2.32.4): Python HTTP for Humans.
+
+>> tests factorial
+
+Tests generated and saved to generated_tests\test_factorial.py
